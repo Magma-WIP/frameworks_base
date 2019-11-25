@@ -59,7 +59,7 @@ import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.ArraySet;
-//import android.util.FeatureFlagUtils;
+import android.util.FeatureFlagUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
@@ -139,7 +139,6 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
     private static final String GLOBAL_ACTION_KEY_EMERGENCY = "emergency";
     private static final String GLOBAL_ACTION_KEY_RESTART_RECOVERY = "recovery";
     private static final String GLOBAL_ACTION_KEY_SCREENSHOT = "screenshot";
-    private static final String GLOBAL_ACTION_KEY_SCREENRECORD = "screenrecord";
 
     private static final int SHOW_TOGGLES_BUTTON = 1;
     private static final int RESTART_RECOVERY_BUTTON = 2;
@@ -463,8 +462,6 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
                 mItems.add(new RestartAction());
             } else if (GLOBAL_ACTION_KEY_SCREENSHOT.equals(actionKey)) {
                 mItems.add(new ScreenshotAction());
-            } else if (GLOBAL_ACTION_KEY_SCREENRECORD.equals(actionKey)) {
-                mItems.add(new ScreenrecordAction());
             } else if (GLOBAL_ACTION_KEY_LOGOUT.equals(actionKey)) {
                 if (mDevicePolicyManager.isLogoutEnabled()
                         && getCurrentUser().id != UserHandle.USER_SYSTEM) {
@@ -686,7 +683,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
 
     private class ScreenshotAction extends SinglePressAction implements LongPressAction {
         public ScreenshotAction() {
-            super(R.drawable.ic_screenshot, com.android.systemui.R.string.global_action_screenshot_cust);
+            super(R.drawable.ic_screenshot, R.string.global_action_screenshot);
         }
 
         @Override
@@ -698,7 +695,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mScreenshotHelper.takeScreenshot(1/*TAKE_SCREENSHOT_FULLSCREEN*/, true, true, mHandler);
+                    mScreenshotHelper.takeScreenshot(1, true, true, mHandler);
                     MetricsLogger.action(mContext,
                             MetricsEvent.ACTION_SCREENSHOT_POWER_MENU);
                 }
@@ -717,43 +714,12 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
 
         @Override
         public boolean onLongPress() {
-            mDialog.dismiss();
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mScreenshotHelper.takeScreenshot(2/*TAKE_SCREENSHOT_SELECTED_REGION*/, true, true, mHandler);
-                    MetricsLogger.action(mContext,
-                            MetricsEvent.ACTION_SCREENSHOT_POWER_MENU);
-                }
-            }, 500);
+            if (FeatureFlagUtils.isEnabled(mContext, FeatureFlagUtils.SCREENRECORD_LONG_PRESS)) {
+                mScreenRecordHelper.launchRecordPrompt();
+            } else {
+                onPress();
+            }
             return true;
-        }
-    }
-
-    private class ScreenrecordAction extends SinglePressAction implements LongPressAction {
-        public ScreenrecordAction() {
-            super(com.android.systemui.R.drawable.ic_screenrecord,
-            com.android.systemui.R.string.global_action_screenrecord);
-        }
-
-        @Override
-        public void onPress() {
-            mScreenRecordHelper.launchRecordPrompt();
-        }
-
-        @Override
-        public boolean showDuringKeyguard() {
-            return true;
-        }
-
-        @Override
-        public boolean showBeforeProvisioning() {
-            return false;
-        }
-
-        @Override
-        public boolean onLongPress() {
-            return false;
         }
     }
 

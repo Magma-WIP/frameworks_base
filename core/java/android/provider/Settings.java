@@ -4540,12 +4540,6 @@ public final class Settings {
                 BOOLEAN_VALIDATOR;
 
         /**
-         * Whether the user has already accepted MediaProjection permission for the built-in screenrecorder
-         * @hide
-         */
-        public static final String MEDIAPROJECTION_SYSUI_OK = "mediaprojection_sysui_ok";
-
-        /**
          * Three Finger Gesture from Oppo
          * @hide
          */
